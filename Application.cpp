@@ -20,6 +20,7 @@ public:
             cout << "3. Update Student by ID" << endl;
             cout << "4. Delete Student by ID" << endl;
             cout << "5. Search Students" << endl;
+            cout << "6. Searchasdf asdfdasf Students" << endl;
             cout << "0. Quit" << endl;
             cout << "Enter your choice: ";
             cin >> choice;
