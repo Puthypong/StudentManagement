@@ -10,7 +10,7 @@ female
 ttp
 01931231
 4
-test
+toji
 4
 male
 ttp
@@ -52,3 +52,9 @@ male
 tk
 09131312
 1
+nata
+11
+male
+ttp
+0128344
+2
