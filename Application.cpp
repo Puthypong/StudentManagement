@@ -4,6 +4,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <limits>
+
+#include "DataValidation.cpp"
 
 class Application
 {
@@ -63,9 +66,16 @@ private:
         string name, sex, address, phone_number;
         int year;
 
+        
+        DataValidation dataValidation;
+
+
+        bool validInput = false;
+
         // Get user input for student details
         cout << "Enter student name: ";
-        cin >> name;
+        name = dataValidation.get_st();
+
         // Determine the next available ID
         vector<Student> students = FileUtil::readStudentsFromFile("student.txt");
         int nextId = 1;
@@ -75,14 +85,35 @@ private:
         }
         int id = nextId;
 
-        cout << "Enter student sex: ";
-        cin >> sex;
+        //Input The Gender With Validation
+        cout << "Enter student sex (male/female or Male/Female): ";
+        while (!validInput) {
+            
+            cin >> sex;
+
+            // Convert input to lowercase
+            for (char &c : sex) {
+                c = tolower(c);
+            }
+
+            // Validate the input
+            if (sex == "male" || sex == "female" || sex == "Male" || sex =="Female") {
+                validInput = true;
+            } else {
+                cout << "Invalid input. Please enter 'male' or 'female'." << endl;
+            }
+        }
+   
         cout << "Enter student address: ";
         cin >> address;
+
+
+        cout << "Enter the year (between 1 and 4): ";
+        year = dataValidation.getYear();
+        
+        
         cout << "Enter student phone number: ";
-        cin >> phone_number;
-        cout << "Enter student year: ";
-        cin >> year;
+        phone_number = dataValidation.getPhoneNumber();
 
         // Create a Student object using user input
         Student student = Student(name, id, sex, address, phone_number, year);
@@ -114,6 +145,8 @@ private:
 
     void updateStudentById(int id)
     {
+
+        DataValidation dataValidation;
         vector<Student> students = FileUtil::readStudentsFromFile("student.txt");
         bool found = false;
 
@@ -125,65 +158,74 @@ private:
                 found = true;
                 // Display student's information
                 it->display();
-                // Prompt the user to choose which information to update
-                int choice;
-                cout << "Choose which information to update:" << endl;
-                cout << "1. Name" << endl;
-                cout << "2. Sex" << endl;
-                cout << "3. Address" << endl;
-                cout << "4. Phone Number" << endl;
-                cout << "5. Year" << endl;
-                cout << "0. Cancel" << endl;
-                cout << "Enter your choice: ";
-                cin >> choice;
+                // Prompt the user to confirm the update
+                char confirm;
+                cout << "Do you want to update this student's information? (y/n): ";
+                cin >> confirm;
 
-                // Variables to store new values
-                string newName, newSex, newAddress, newPhoneNumber;
-                int newYear;
+                if (confirm == 'y' || confirm == 'Y') {
+                    // Prompt the user to choose which information to update
+                    int choice;
+                    cout << "Choose which information to update:" << endl;
+                    cout << "1. Name" << endl;
+                    cout << "2. Sex" << endl;
+                    cout << "3. Address" << endl;
+                    cout << "4. Phone Number" << endl;
+                    cout << "5. Year" << endl;
+                    cout << "0. Cancel" << endl;
+                    cout << "Enter your choice: ";
+                    cin >> choice;
 
-                // Update the chosen information
-                switch (choice)
-                {
-                case 1:
-                    cout << "Enter new name: ";
-                    cin >> newName;
-                    it->setName(newName);
-                    break;
-                case 2:
-                    cout << "Enter new sex: ";
-                    cin >> newSex;
-                    it->setSex(newSex);
-                    break;
-                case 3:
-                    cout << "Enter new address: ";
-                    cin >> newAddress;
-                    it->setAddress(newAddress);
-                    break;
-                case 4:
-                    cout << "Enter new phone number: ";
-                    cin >> newPhoneNumber;
-                    it->setPhoneNumber(newPhoneNumber);
-                    break;
-                case 5:
-                    cout << "Enter new year: ";
-                    cin >> newYear;
-                    it->setYear(newYear);
-                    break;
-                case 0:
+                    // Variables to store new values
+                    string newName, newSex, newAddress, newPhoneNumber;
+                    int newYear;
+
+                    // Update the chosen information
+                    switch (choice)
+                    {
+                    case 1:
+                        cout << "Enter new name: ";
+                        newName = dataValidation.get_st();
+                        it->setName(newName);
+                        break;
+                    case 2:
+                        cout << "Enter new sex: ";
+                        cin >> newSex;
+                        it->setSex(newSex);
+                        break;
+                    case 3:
+                        cout << "Enter new address: ";
+                        cin >> newAddress;
+                        it->setAddress(newAddress);
+                        break;
+                    case 4:
+                        cout << "Enter new phone number: ";
+                        newPhoneNumber = dataValidation.getPhoneNumber();
+                        it->setPhoneNumber(newPhoneNumber);
+                        break;
+                    case 5:
+                        cout << "Enter new year: ";
+                        newYear = dataValidation.getYear();
+                        it->setYear(newYear);
+                        break;
+                    case 0:
+                        cout << "Update canceled." << endl;
+                        break;
+                    default:
+                        cout << "Invalid choice. Update canceled." << endl;
+                        break;
+                    }
+                    // Rewrite all students to the file
+                    ofstream outputFile("student.txt");
+                    for (const auto &student : students)
+                    {
+                        FileUtil::writeStudentToFile(student, outputFile);
+                    }
+                    outputFile.close();
+                    cout << "Student updated successfully." << endl;
+                } else {
                     cout << "Update canceled." << endl;
-                    break;
-                default:
-                    cout << "Invalid choice. Update canceled." << endl;
-                    break;
                 }
-                // Rewrite all students to the file
-                ofstream outputFile("student.txt");
-                for (const auto &student : students)
-                {
-                    FileUtil::writeStudentToFile(student, outputFile);
-                }
-                outputFile.close();
-                cout << "Student updated successfully." << endl;
                 break;
             }
         }
@@ -193,6 +235,9 @@ private:
             cout << "Student with ID " << id << " not found." << endl;
         }
     }
+
+
+   
 
     void deleteStudentById(int id)
     {
@@ -204,9 +249,21 @@ private:
         {
             if (it->getId() == id)
             {
-                students.erase(it); // Erase the student with the given ID
-                found = true;
-                break;
+                // Display student's information
+                it->display();
+                // Prompt the user to confirm the deletion
+                char confirm;
+                cout << "Do you want to delete this student? (y/n): ";
+                cin >> confirm;
+
+                if (confirm == 'y' || confirm == 'Y') {
+                    students.erase(it); // Erase the student with the given ID
+                    found = true;
+                    break;
+                } else {
+                    cout << "Deletion canceled." << endl;
+                    return; // Terminate the function without making any changes
+                }
             }
         }
 
